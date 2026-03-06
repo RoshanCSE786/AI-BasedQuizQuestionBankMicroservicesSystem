@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure--axuaarvw7c&tpon52ax881k(50oib(t!$7qg)g6ozkvd&#f8$
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -128,8 +128,10 @@ REST_FRAMEWORK = {
     ),
 }
 
-QUESTION_SERVICE_URL = "http://127.0.0.1:8001/api/questions/"
+QUESTION_SERVICE_URL = "http://question-service:8001/api/questions/"
+
+RESULT_SERVICE_URL = "http://result-service:8003/api/results/"
 
 # Redis Configuration
-REDIS_HOST = "127.0.0.1"
+REDIS_HOST = "redis"
 REDIS_PORT = 6379

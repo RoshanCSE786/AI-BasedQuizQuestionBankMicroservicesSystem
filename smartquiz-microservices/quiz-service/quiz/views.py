@@ -8,8 +8,6 @@ from .redis_client import redis_client
 import redis
 import json
 
-from .models import QuizAttempt
-
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def generate_quiz(request):
@@ -86,6 +84,20 @@ def submit_quiz(request):
 
     # Optional: delete quiz after submission
     r.delete(key)
+
+    # 🔹 Send result to result-service
+    payload = {
+        "user_id": request.user.id,
+        "username": request.user.username,
+        "quiz_id": quiz_id,
+        "score": score,
+        "total": total
+    }
+
+    try:
+        requests.post(settings.RESULT_SERVICE_URL, json=payload)
+    except Exception as e:
+        print("Error sending to result-service:", e)
 
     return Response({
         "quiz_id": quiz_id,
