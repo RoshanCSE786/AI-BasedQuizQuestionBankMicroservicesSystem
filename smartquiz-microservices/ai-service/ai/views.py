@@ -7,7 +7,7 @@ from rest_framework.response import Response
 @api_view(["POST"])
 def analyze_user(request):
 
-    user_id = request.data.get("user_id")
+    user_id = request.user.id
 
     if not user_id:
         return Response({"error": "user_id required"}, status=400)

@@ -7,15 +7,22 @@ from rest_framework.response import Response
 from .redis_client import redis_client
 import redis
 import json
+import random
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def generate_quiz(request):
 
-    # 🔹 Extract user's token
+
+    # 🔹 Read request data
+    category = request.data.get("category")
+    difficulty = request.data.get("difficulty")
+    num_questions = request.data.get("num_questions", 5)
+
+    # 🔹 Extract token
     auth_header = request.headers.get("Authorization")
 
-    # 🔹 Call Question Service with same token
+    # 🔹 Fetch questions from Question Service
     response = requests.get(
         settings.QUESTION_SERVICE_URL,
         headers={"Authorization": auth_header}
@@ -29,15 +36,34 @@ def generate_quiz(request):
 
     questions = response.json()
 
-    import uuid
+    # 🔹 Filter questions
+    filtered_questions = [
+        q for q in questions
+        if (not category or q["category"] == category)
+        and (not difficulty or q["difficulty"] == difficulty)
+    ]
+
+    if not filtered_questions:
+        return Response(
+            {"error": "No questions found for selected filters"},
+            status=400
+        )
+
+    # 🔹 Random selection
+    selected_questions = random.sample(
+        filtered_questions,
+        min(num_questions, len(filtered_questions))
+    )
+
     quiz_id = str(uuid.uuid4())
 
     correct_answers = {}
 
-    for q in questions:
+    for q in selected_questions:
         correct_answers[str(q["id"])] = q["correct_answer"]
         del q["correct_answer"]
 
+    # 🔹 Store answers in Redis
     from .redis_client import redis_client
 
     redis_client.setex(
@@ -48,7 +74,7 @@ def generate_quiz(request):
 
     return Response({
         "quiz_id": quiz_id,
-        "questions": questions
+        "questions": selected_questions
     })
 
 @api_view(["POST"])

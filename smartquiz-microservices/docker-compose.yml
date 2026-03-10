@@ -6,6 +6,11 @@ services:
     image: redis:7
     ports:
       - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
   auth-service:
     build: ./auth-service
@@ -22,6 +27,8 @@ services:
     ports:
       - "8002:8002"
     depends_on:
+      - question-service
+      - result-service
       - redis
 
   result-service:
@@ -33,3 +40,17 @@ services:
     build: ./ai-service
     ports:
       - "8004:8004"
+    depends_on:
+      - result-service
+      - redis
+
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "9000:9000"
+    depends_on:
+      - auth-service
+      - question-service
+      - quiz-service
+      - result-service
+      - ai-service
