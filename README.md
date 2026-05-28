@@ -14,7 +14,6 @@ SmartQuiz is a microservices-based quiz platform built using Django, DRF, JWT, R
 - Django REST Framework
 - JWT Authentication
 - Redis
-- Celery
 - Docker
 
 ## Features
